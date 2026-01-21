@@ -1,3 +1,9 @@
+wlanpi-desktop (1.0.1) bookworm; urgency=medium
+
+  * Remove conflicting openbox.desktop file (use version from openbox package)
+
+ -- Josh Schmelzle <josh@joshschmelzle.com>  Wed, 22 Jan 2026 02:00:00 +0000
+
 wlanpi-desktop (1.0.0) bookworm; urgency=medium
 
   * Initial release
