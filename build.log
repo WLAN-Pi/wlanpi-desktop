@@ -1,9 +1,0 @@
-dpkg-buildpackage: info: source package wlanpi-desktop
-dpkg-buildpackage: info: source version 1.0.0
-dpkg-buildpackage: info: source distribution bookworm
-dpkg-buildpackage: info: source changed by Josh Schmelzle <josh@joshschmelzle.com>
- dpkg-source --before-build .
-dpkg-buildpackage: info: host architecture arm64
-dpkg-checkbuilddeps: error: unmet build dependencies: debhelper-compat (= 13)
-dpkg-buildpackage: error: build dependencies/conflicts unsatisfied; aborting
-dpkg-buildpackage: hint: satisfy build dependencies with your package manager frontend
