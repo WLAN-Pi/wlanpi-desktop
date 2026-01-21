@@ -1,0 +1,34 @@
+Source: wlanpi-desktop
+Section: x11
+Priority: optional
+Maintainer: Josh Schmelzle <josh@joshschmelzle.com>
+Build-Depends: debhelper (>= 10)
+Standards-Version: 4.6.0
+Homepage: https://github.com/WLAN-Pi/wlanpi-desktop
+
+Package: wlanpi-desktop
+Architecture: all
+Depends: ${misc:Depends},
+         openbox,
+         lxpanel,
+         lightdm,
+         lightdm-gtk-greeter,
+         xfce4-terminal,
+         firefox-esr,
+         pcmanfm,
+         network-manager-gnome,
+         xdg-utils,
+         libnss3-tools,
+         systemd,
+         x11-xserver-utils
+Description: Minimal desktop environment for WLAN Pi
+ wlanpi-desktop provides a lightweight, on-demand desktop environment
+ optimized for single-board computers like Raspberry Pi.
+ .
+ Features:
+  - Disabled by default
+  - Openbox window manager with LXPanel
+  - Simple management via wlanpi-gui command
+  - Autologin support (disabled by default)
+  - Configurable screen blanking (10 min default)
+  - Firefox ESR

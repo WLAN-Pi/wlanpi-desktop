@@ -1,0 +1,30 @@
+#!/bin/bash
+set -e
+
+case "$1" in
+    configure)
+        # Set default target to multi-user (headless)
+        systemctl set-default multi-user.target >/dev/null 2>&1 || true
+        
+        # Disable LightDM by default
+        systemctl disable lightdm.service >/dev/null 2>&1 || true
+        
+        # Disable GUI autostart helper (not needed when GUI disabled)
+        systemctl disable wlanpi-gui-autostart.service >/dev/null 2>&1 || true
+        
+        # Enable Firefox setup service (runs once on first GUI start)
+        systemctl enable wlanpi-firefox-setup.service >/dev/null 2>&1 || true
+        
+        # Reload systemd daemon
+        systemctl daemon-reload >/dev/null 2>&1 || true
+        
+        echo "wlanpi-desktop installed successfully"
+        echo "Desktop is DISABLED by default"
+        echo " - To test: sudo wlanpi-gui start"
+        echo " - To enable: sudo wlanpi-gui enable"
+        ;;
+esac
+
+#DEBHELPER#
+
+exit 0

@@ -1,0 +1,2 @@
+# Disable accessibility bus warnings for lightweight desktop
+NO_AT_BRIDGE=1

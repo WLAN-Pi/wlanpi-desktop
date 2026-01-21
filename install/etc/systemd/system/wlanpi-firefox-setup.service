@@ -1,0 +1,13 @@
+[Unit]
+Description=WLAN Pi Firefox first-boot configuration
+After=multi-user.target
+ConditionPathExists=!/home/wlanpi/.config/wlanpi-firefox-configured
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/wlanpi-firefox-setup
+ExecStartPost=/bin/sleep 2
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

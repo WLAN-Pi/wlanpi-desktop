@@ -1,0 +1,12 @@
+[Unit]
+Description=WLAN Pi GUI auto-start helper
+After=multi-user.target network.target systemd-user-sessions.service
+Requires=multi-user.target
+
+[Service]
+Type=oneshot
+ExecStart=/bin/systemctl start lightdm.service
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

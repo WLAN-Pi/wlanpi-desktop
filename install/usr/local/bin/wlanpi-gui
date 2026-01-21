@@ -1,0 +1,352 @@
+#!/bin/bash
+# WLAN Pi GUI manager
+# Provides simple interface for enabling/disabling desktop environment
+
+set -e
+
+# Configuration
+AUTOLOGIN_CONF="/etc/lightdm/lightdm.conf.d/50-wlanpi-autologin.conf"
+XORG_CONF="/etc/X11/xorg.conf.d/50-wlanpi-performance.conf"
+AUTOLOGIN_USER="wlanpi"
+
+# Functions
+show_status() {
+    echo "======================================"
+    echo "WLAN Pi GUI Status"
+    echo "======================================"
+    echo "Default target:    $(systemctl get-default)"
+    echo "LightDM enabled:   $(systemctl is-enabled lightdm 2>/dev/null || echo 'disabled')"
+    echo "LightDM active:    $(systemctl is-active lightdm 2>/dev/null || echo 'inactive')"
+    
+    # Check autologin status
+    if [ -f "$AUTOLOGIN_CONF" ] && grep -q "autologin-user=$AUTOLOGIN_USER" "$AUTOLOGIN_CONF" 2>/dev/null; then
+        echo "Autologin:         enabled"
+    else
+        echo "Autologin:         disabled"
+    fi
+    
+    # Check screen blanking status
+    if [ -f "$XORG_CONF" ]; then
+        BLANK_TIME=$(grep 'Option.*"BlankTime"' "$XORG_CONF" | grep -oP '"\d+"' | tr -d '"' || echo "0")
+        if [ "$BLANK_TIME" = "0" ]; then
+            echo "Screen blanking:   disabled"
+        else
+            echo "Screen blanking:   ${BLANK_TIME} minutes"
+        fi
+    else
+        echo "Screen blanking:   not configured"
+    fi
+    
+    echo ""
+    
+    if [ "$(systemctl get-default)" = "graphical.target" ]; then
+        echo "GUI is ENABLED (will start on boot)"
+    else
+        echo "GUI is DISABLED (headless mode)"
+    fi
+    
+    if [ "$(systemctl is-active lightdm 2>/dev/null)" = "active" ]; then
+        echo "GUI is currently RUNNING"
+    else
+        echo "GUI is currently NOT RUNNING"
+    fi
+    
+    echo "======================================"
+}
+
+enable_gui() {
+    echo "Enabling GUI environment..."
+    
+    # Set graphical target as default
+    systemctl set-default graphical.target
+    
+    # Enable LightDM service
+    systemctl enable lightdm
+    systemctl enable wlanpi-gui-autostart.service
+    
+    # Start LightDM now (don't wait for reboot)
+    systemctl start lightdm
+    
+    echo "✓ GUI enabled successfully"
+    echo "Graphical login is now active on HDMI output."
+    echo "GUI will start automatically on future reboots."
+}
+
+disable_gui() {
+    echo "Disabling GUI environment..."
+    
+    # Stop LightDM if running
+    if systemctl is-active --quiet lightdm; then
+        systemctl stop lightdm
+        echo "Stopped GUI session."
+    fi
+    
+    # Disable LightDM service
+    systemctl disable lightdm
+    systemctl disable wlanpi-gui-autostart.service
+    
+    # Set multi-user target as default
+    systemctl set-default multi-user.target
+    
+    echo "✓ GUI disabled successfully"
+    echo "System will boot to console/SSH mode on next reboot."
+}
+
+start_gui() {
+    echo "Starting GUI session (temporary)..."
+    
+    # Check if already running
+    if systemctl is-active --quiet lightdm; then
+        echo "GUI is already running"
+        exit 0
+    fi
+    
+    # Start LightDM (but don't enable it)
+    systemctl start lightdm
+    
+    echo "✓ GUI started"
+    echo "GUI is active on HDMI output."
+    echo "Note: This is temporary - GUI won't start on next reboot."
+    echo "To make permanent, run: wlanpi-gui enable"
+}
+
+stop_gui() {
+    echo "Stopping GUI session..."
+    
+    # Check if running
+    if ! systemctl is-active --quiet lightdm; then
+        echo "GUI is not currently running"
+        exit 0
+    fi
+    
+    # Stop LightDM
+    systemctl stop lightdm
+    
+    echo "✓ GUI stopped"
+    echo "Returned to console mode."
+}
+
+enable_autologin() {
+    echo "Enabling GUI autologin for user: $AUTOLOGIN_USER..."
+    
+    # Create autologin configuration
+    cat > "$AUTOLOGIN_CONF" << EOF
+[Seat:*]
+autologin-user=$AUTOLOGIN_USER
+autologin-user-timeout=0
+EOF
+    
+    chmod 644 "$AUTOLOGIN_CONF"
+    
+    echo "✓ Autologin enabled"
+    echo "User '$AUTOLOGIN_USER' will automatically login to GUI"
+    echo "Note: Restart LightDM for changes to take effect"
+    echo "Run: sudo systemctl restart lightdm"
+}
+
+disable_autologin() {
+    echo "Disabling GUI autologin..."
+    
+    if [ -f "$AUTOLOGIN_CONF" ]; then
+        rm -f "$AUTOLOGIN_CONF"
+        echo "✓ Autologin disabled"
+        echo "GUI will require manual login"
+        echo "Note: Restart LightDM for changes to take effect"
+        echo "Run: sudo systemctl restart lightdm"
+    else
+        echo "Autologin is already disabled"
+    fi
+}
+
+enable_blanking() {
+    echo "Enabling screen blanking (10 minute timeout)..."
+    
+    # Update Xorg configuration
+    if [ -f "$XORG_CONF" ]; then
+        # Check if ServerFlags section exists
+        if grep -q 'Section "ServerFlags"' "$XORG_CONF"; then
+            # Update existing BlankTime option
+            sed -i 's/Option.*"BlankTime".*/    Option "BlankTime" "10"/' "$XORG_CONF"
+        else
+            # Add ServerFlags section
+            cat >> "$XORG_CONF" << 'EOF'
+
+Section "ServerFlags"
+    Option "BlankTime" "10"      # Screen blanks after 10 minutes
+    Option "StandbyTime" "0"     # Disable standby
+    Option "SuspendTime" "0"     # Disable suspend
+    Option "OffTime" "0"         # Disable off
+EndSection
+EOF
+        fi
+    fi
+    
+    # Update live session if X is running
+    if [ -n "$DISPLAY" ]; then
+        xset s 600 600 2>/dev/null || true
+    fi
+    
+    echo "✓ Screen blanking enabled (10 minute timeout)"
+    echo "Screen will blank after 10 minutes of inactivity"
+}
+
+disable_blanking() {
+    echo "Disabling screen blanking..."
+    
+    # Update Xorg configuration
+    if [ -f "$XORG_CONF" ]; then
+        # Update BlankTime to 0 (disabled)
+        sed -i 's/Option.*"BlankTime".*/    Option "BlankTime" "0"/' "$XORG_CONF"
+    fi
+    
+    # Update live session if X is running
+    if [ -n "$DISPLAY" ]; then
+        xset s 0 0 2>/dev/null || true
+        xset s off 2>/dev/null || true
+    fi
+    
+    echo "✓ Screen blanking disabled"
+    echo "Screen will never blank"
+}
+
+show_help() {
+    cat << HELPEOF
+WLAN Pi GUI manager
+
+Usage: wlanpi-gui <command>
+
+Commands:
+
+  enable              Enable GUI at boot (persistent)
+                      - Sets graphical.target as default
+                      - Enables and starts LightDM service
+                      - GUI will start on every boot
+
+  disable             Disable GUI at boot (persistent)
+                      - Sets multi-user.target as default
+                      - Stops and disables LightDM service
+                      - System boots to console/SSH mode
+
+  start               Start GUI now (temporary)
+                      - Starts LightDM service immediately
+                      - GUI appears on HDMI
+                      - Will NOT persist after reboot
+
+  stop                Stop GUI now (temporary)
+                      - Stops LightDM service
+                      - Returns to console mode
+
+  status              Show current GUI status
+                      - Display default target, autologin, and blanking state
+
+  autologin-enable    Enable automatic GUI login
+                      - User '$AUTOLOGIN_USER' will login automatically
+                      - Requires GUI to be enabled
+                      - Restart LightDM to apply
+
+  autologin-disable   Disable automatic GUI login
+                      - GUI will require manual login
+
+  blanking-enable     Enable screen blanking (10 minute timeout)
+                      - Screen will blank after 10 minutes of inactivity
+
+  blanking-disable    Disable screen blanking
+                      - Screen will never blank (always on)
+
+Usage examples:
+
+  # Enable GUI permanently
+  sudo wlanpi-gui enable
+
+  # Enable GUI with autologin
+  sudo wlanpi-gui enable
+  sudo wlanpi-gui autologin-enable
+
+  # Disable screen blanking for monitoring displays
+  sudo wlanpi-gui blanking-disable
+
+  # Check current status
+  wlanpi-gui status
+
+Notes:
+
+  - GUI requires HDMI display connected
+  - SSH access always available regardless of GUI state
+  - Console accessible via Ctrl+Alt+F1-F6 when GUI active
+  - Autologin requires GUI to be enabled
+  - Screen blanking settings apply to next GUI session
+
+HELPEOF
+}
+
+# Main command dispatcher
+case "$1" in
+    enable)
+        if [ "$EUID" -ne 0 ]; then
+            echo "Error: This command requires sudo"
+            exit 1
+        fi
+        enable_gui
+        ;;
+    disable)
+        if [ "$EUID" -ne 0 ]; then
+            echo "Error: This command requires sudo"
+            exit 1
+        fi
+        disable_gui
+        ;;
+    start)
+        if [ "$EUID" -ne 0 ]; then
+            echo "Error: This command requires sudo"
+            exit 1
+        fi
+        start_gui
+        ;;
+    stop)
+        if [ "$EUID" -ne 0 ]; then
+            echo "Error: This command requires sudo"
+            exit 1
+        fi
+        stop_gui
+        ;;
+    autologin-enable)
+        if [ "$EUID" -ne 0 ]; then
+            echo "Error: This command requires sudo"
+            exit 1
+        fi
+        enable_autologin
+        ;;
+    autologin-disable)
+        if [ "$EUID" -ne 0 ]; then
+            echo "Error: This command requires sudo"
+            exit 1
+        fi
+        disable_autologin
+        ;;
+    blanking-enable)
+        if [ "$EUID" -ne 0 ]; then
+            echo "Error: This command requires sudo"
+            exit 1
+        fi
+        enable_blanking
+        ;;
+    blanking-disable)
+        if [ "$EUID" -ne 0 ]; then
+            echo "Error: This command requires sudo"
+            exit 1
+        fi
+        disable_blanking
+        ;;
+    status)
+        show_status
+        ;;
+    help|--help|-h)
+        show_help
+        ;;
+    *)
+        echo "Error: Unknown command '$1'"
+        echo ""
+        show_help
+        exit 1
+        ;;
+esac

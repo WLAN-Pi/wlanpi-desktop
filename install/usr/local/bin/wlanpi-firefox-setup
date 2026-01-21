@@ -1,0 +1,85 @@
+#!/bin/bash
+# WLAN Pi Firefox First-Boot Configuration
+# Sets wlanpi.local as homepage and trusts self-signed certificate
+
+set -e
+
+FIREFOX_PROFILE_DIR="/home/wlanpi/.mozilla/firefox"
+CERT_FILE="/etc/nginx/ssl/self-signed-wlanpi.cert"
+MARKER_FILE="/home/wlanpi/.config/wlanpi-firefox-configured"
+
+# Check if already configured
+if [ -f "$MARKER_FILE" ]; then
+    exit 0
+fi
+
+# Wait for user session to exist
+if [ ! -d "/home/wlanpi" ]; then
+    exit 0
+fi
+
+# Ensure wlanpi.local resolves to localhost
+if ! grep -q "wlanpi.local" /etc/hosts; then
+    echo "127.0.0.1 wlanpi.local" >> /etc/hosts
+fi
+
+# Create Firefox profile if it doesn't exist
+if [ ! -d "$FIREFOX_PROFILE_DIR" ]; then
+    # Run Firefox once to create profile (headless)
+    sudo -u wlanpi firefox-esr --headless --screenshot /tmp/firefox-init.png https://wlanpi.local &
+    FIREFOX_PID=$!
+    sleep 5
+    kill $FIREFOX_PID 2>/dev/null || true
+    sleep 2
+fi
+
+# Find the default profile directory
+PROFILE=$(sudo -u wlanpi find "$FIREFOX_PROFILE_DIR" -maxdepth 1 -name "*.default-esr" -type d | head -1)
+
+if [ -z "$PROFILE" ]; then
+    # Create a default profile
+    sudo -u wlanpi firefox-esr -CreateProfile "default"
+    PROFILE=$(sudo -u wlanpi find "$FIREFOX_PROFILE_DIR" -maxdepth 1 -name "*.default-esr" -type d | head -1)
+fi
+
+if [ -n "$PROFILE" ]; then
+    # Create user.js for Firefox preferences
+    sudo -u wlanpi tee "$PROFILE/user.js" > /dev/null << 'USERJS'
+// WLAN Pi Firefox Configuration
+// Set wlanpi.local as homepage
+user_pref("browser.startup.homepage", "https://wlanpi.local");
+user_pref("browser.startup.page", 1);
+
+// Performance optimizations for embedded device
+user_pref("browser.sessionstore.resume_from_crash", false);
+user_pref("browser.cache.disk.enable", true);
+user_pref("browser.cache.memory.enable", true);
+user_pref("browser.cache.disk.capacity", 51200);
+
+// Disable unnecessary features for embedded device
+user_pref("browser.safebrowsing.malware.enabled", false);
+user_pref("browser.safebrowsing.phishing.enabled", false);
+user_pref("datareporting.healthreport.uploadEnabled", false);
+user_pref("toolkit.telemetry.enabled", false);
+
+// Note: WLAN Pi self-signed certificate is imported via certutil below
+// This provides specific trust for wlanpi.local without weakening overall security
+USERJS
+
+    # Import the self-signed certificate into Firefox's certificate database
+    if [ -f "$CERT_FILE" ]; then
+        # Create cert8.db if it doesn't exist
+        if [ ! -f "$PROFILE/cert8.db" ] && [ ! -f "$PROFILE/cert9.db" ]; then
+            sudo -u wlanpi certutil -N -d sql:"$PROFILE" --empty-password 2>/dev/null || true
+        fi
+        
+        # Import the certificate with proper trust flags
+        sudo -u wlanpi certutil -A -n "WLAN Pi Self-Signed" -t "CT,C,C" -i "$CERT_FILE" -d sql:"$PROFILE" 2>/dev/null || true
+    fi
+fi
+
+# Create marker file (ensure directory exists)
+sudo -u wlanpi mkdir -p "$(dirname "$MARKER_FILE")"
+sudo -u wlanpi touch "$MARKER_FILE"
+
+echo "Firefox configured for WLAN Pi"

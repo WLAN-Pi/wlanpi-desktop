@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Screen blanking: 10 minute timeout (600 seconds)
+xset s 600 600
+xset dpms 0 0 0
+
+# Start LXPanel with LXDE profile (optimized, no CPU plugin)
+lxpanel --profile LXDE &
+
+# Network manager applet (will show in LXPanel system tray)
+if [ -x /usr/bin/nm-applet ]; then
+    nm-applet &
+fi
+
+# PCManFM desktop manager - handles desktop wallpaper and desktop icons
+pcmanfm --desktop &
+
+# Load Xresources for terminal font settings
+[ -f /etc/xdg/lxpanel/LXDE/Xresources ] && xrdb -merge /etc/xdg/lxpanel/LXDE/Xresources

@@ -1,0 +1,88 @@
+[Configuration]
+# Font - Readable monospace for log analysis and command output
+FontName=DejaVu Sans Mono 12
+BackgroundMode=TERMINAL_BACKGROUND_SOLID
+BackgroundDarkness=0.90
+
+# Color Scheme - Professional Tango-based palette optimized for network tools
+# Dark background with high contrast for readability during long sessions
+ColorForeground=#d3d7cf
+ColorBackground=#2e3436
+ColorCursor=#d3d7cf
+
+# ANSI Colors - Tango palette (optimized for CLI tools, logs, and network output)
+# Black
+ColorPalette1=#2e3436
+ColorPalette9=#555753
+
+# Red (errors, warnings, critical output)
+ColorPalette2=#cc0000
+ColorPalette10=#ef2929
+
+# Green (success, active interfaces, connected state)
+ColorPalette3=#4e9a06
+ColorPalette11=#8ae234
+
+# Yellow (warnings, important info)
+ColorPalette4=#c4a000
+ColorPalette12=#fce94f
+
+# Blue (informational output, SSH sessions)
+ColorPalette5=#3465a4
+ColorPalette13=#729fcf
+
+# Magenta (special markers, highlights)
+ColorPalette6=#75507b
+ColorPalette14=#ad7fa8
+
+# Cyan (links, secondary info)
+ColorPalette7=#06989a
+ColorPalette15=#34e2e2
+
+# White (standard text)
+ColorPalette8=#d3d7cf
+ColorPalette16=#eeeeec
+
+# Tabs - Always show for easy multitasking (multiple SSH sessions, monitoring, etc.)
+MiscAlwaysShowTabs=TRUE
+MiscTabCloseButtons=TRUE
+MiscTabCloseMiddleClick=TRUE
+MiscTabPosition=GTK_POS_TOP
+MiscCycleTabs=TRUE
+MiscSlimTabs=FALSE
+MiscNewTabAdjacent=FALSE
+
+# Bells - Disable annoying beeps
+MiscBell=FALSE
+MiscBellUrgent=FALSE
+
+# Display settings
+MiscBordersDefault=TRUE
+MiscCursorBlinks=FALSE
+MiscCursorShape=TERMINAL_CURSOR_SHAPE_BLOCK
+MiscDefaultGeometry=120x40
+MiscInheritGeometry=FALSE
+MiscMenubarDefault=TRUE
+MiscToolbarDefault=FALSE
+
+# Mouse behavior - Enable copy-on-select for faster workflow
+MiscMouseAutohide=FALSE
+MiscMouseWheelZoom=TRUE
+MiscMiddleClickOpensUri=TRUE
+MiscCopyOnSelect=TRUE
+
+# URL handling - Auto-highlight URLs in command output
+MiscHighlightUrls=TRUE
+
+# Window behavior
+MiscConfirmClose=TRUE
+MiscShowRelaunchDialog=TRUE
+MiscRewrapOnResize=TRUE
+MiscUseShiftArrowsToScroll=FALSE
+
+# Scrollback - Large buffer for reviewing logs and long command output
+ScrollingLines=10000
+
+# Keyboard shortcuts
+ShortcutsNoMenukey=TRUE
+ShortcutsNoMnemonics=TRUE
