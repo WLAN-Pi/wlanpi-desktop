@@ -5,7 +5,7 @@ ConditionPathExists=!/home/wlanpi/.config/wlanpi-firefox-configured
 
 [Service]
 Type=oneshot
-ExecStart=/usr/local/bin/wlanpi-firefox-setup
+ExecStart=/usr/sbin/wlanpi-firefox-setup
 ExecStartPost=/bin/sleep 2
 RemainAfterExit=yes
 
