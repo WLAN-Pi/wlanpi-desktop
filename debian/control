@@ -2,7 +2,7 @@ Source: wlanpi-desktop
 Section: x11
 Priority: optional
 Maintainer: Josh Schmelzle <josh@joshschmelzle.com>
-Build-Depends: debhelper (>= 10)
+Build-Depends: debhelper-compat (= 13)
 Standards-Version: 4.6.0
 Homepage: https://github.com/WLAN-Pi/wlanpi-desktop
 

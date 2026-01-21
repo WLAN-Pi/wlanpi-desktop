@@ -1,4 +1,4 @@
-wlanpi-desktop (1.0.0-2) bookworm; urgency=medium
+wlanpi-desktop (1.0.0-1) bookworm; urgency=medium
 
   * Initial release
   * Lightweight desktop for WLAN Pi
