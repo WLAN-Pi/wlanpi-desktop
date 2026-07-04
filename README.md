@@ -108,10 +108,6 @@ The package installs and configures the following desktop components:
 
 See the [WLAN Pi developer documentation](https://github.com/WLAN-Pi/developers) for contribution guidelines, workflow, branch naming, commit standards, and style guides.
 
-## Changelog / Releases
-
-See the [GitHub Releases](../../releases) page.
-
 ## License
 
 BSD 3-Clause License. See [LICENSE](LICENSE) for details.
