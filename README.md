@@ -24,7 +24,7 @@ sudo apt install wlanpi-desktop
 
 ## Usage
 
-### Enable desktop environment
+### Enable Desktop Environment
 
 ```bash
 sudo wlanpi-gui enable
@@ -32,7 +32,7 @@ sudo wlanpi-gui enable
 
 This sets the system to boot into graphical mode and starts LightDM immediately.
 
-### Disable desktop environment
+### Disable Desktop Environment
 
 ```bash
 sudo wlanpi-gui disable
@@ -40,7 +40,7 @@ sudo wlanpi-gui disable
 
 Returns the system to headless console mode.
 
-### Check status
+### Check Status
 
 ```bash
 wlanpi-gui status
@@ -48,7 +48,7 @@ wlanpi-gui status
 
 Shows current desktop state, autologin status, and screen blanking configuration.
 
-### Autologin management
+### Autologin Management
 
 Enable automatic login to desktop (no password prompt):
 
@@ -64,7 +64,7 @@ sudo wlanpi-gui autologin-disable
 sudo systemctl restart lightdm
 ```
 
-### Screen blanking control
+### Screen Blanking Control
 
 Disable screen blanking for always-on displays:
 
@@ -90,7 +90,7 @@ The package installs and configures the following desktop components:
 - **Web browser:** Firefox ESR
 - **Network management:** NetworkManager with nm-applet
 
-## Default configuration
+## Default Configuration
 
 - Desktop is disabled on installation (multi-user.target).
 - Screen blanking is enabled with a 10-minute timeout.
@@ -104,6 +104,14 @@ The package installs and configures the following desktop components:
 - Firefox is pre-configured to trust the WLAN Pi self-signed certificate.
 - HDMI display connection is required for graphical operation.
 
+## Contributing
+
+See the [WLAN Pi developer documentation](https://github.com/WLAN-Pi/developers) for contribution guidelines, workflow, branch naming, commit standards, and style guides.
+
+## Changelog / Releases
+
+See the [GitHub Releases](../../releases) page.
+
 ## License
 
-BSD 3-Clause License. See LICENSE file for details.
+BSD 3-Clause License. See [LICENSE](LICENSE) for details.
