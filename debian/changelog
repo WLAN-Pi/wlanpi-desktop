@@ -1,3 +1,9 @@
+wlanpi-desktop (1.0.3) bookworm; urgency=medium
+
+  * Rebuild to publish packages for Debian trixie to packagecloud
+
+ -- Josh Schmelzle <josh@joshschmelzle.com>  Thu, 09 Jul 2026 23:01:42 -0400
+
 wlanpi-desktop (1.0.2) bookworm; urgency=medium
 
   * Move /etc/environment to /etc/environment.d/ to avoid conffile conflict
