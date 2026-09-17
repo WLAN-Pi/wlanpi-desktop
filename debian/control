@@ -21,6 +21,7 @@ Depends: ${misc:Depends},
          libnss3-tools,
          systemd,
          x11-xserver-utils
+Recommends: xclip
 Description: Minimal desktop environment for WLAN Pi
  wlanpi-desktop provides a lightweight, on-demand desktop environment
  optimized for single-board computers like Raspberry Pi.

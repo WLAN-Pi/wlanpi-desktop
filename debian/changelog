@@ -1,3 +1,10 @@
+wlanpi-desktop (1.0.4) trixie; urgency=medium
+
+  * Recommend xclip so tmux copy/paste works in the X/desktop session
+    (xfce4-terminal has no OSC 52 support)
+
+ -- Josh Schmelzle <josh@joshschmelzle.com>  Thu, 17 Sep 2026 16:02:01 -0400
+
 wlanpi-desktop (1.0.3) bookworm; urgency=medium
 
   * Rebuild to publish packages for Debian trixie to packagecloud

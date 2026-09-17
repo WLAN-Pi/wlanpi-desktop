@@ -10,6 +10,7 @@ A minimal desktop environment for WLAN Pi bookworm images.
 - Firefox ESR pre-configured for WLAN Pi WebUI integration.
 - Optional autologin support.
 - Configurable screen blanking with 10-minute default.
+- Installs `xclip` (recommended) so tmux copy/paste works in the desktop session.
 
 ## Installation
 
