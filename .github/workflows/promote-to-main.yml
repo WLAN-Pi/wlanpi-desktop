@@ -1,0 +1,54 @@
+name: Promote to Packagecloud Main
+
+on:
+  # MANUAL ONLY: publishing to the wlanpi/main repo (used by release images)
+  # is a deliberate human action. Auto-pushes go to wlanpi/dev only.
+  workflow_dispatch:
+
+jobs:
+  sbuild:
+    name: sbuild ${{ matrix.distro }}+${{ matrix.arch }}
+
+    runs-on: 'ubuntu-24.04-arm'
+
+    strategy:
+      fail-fast: false
+      matrix:
+        distro: [trixie]
+        arch: [arm64]
+
+    environment: PACKAGECLOUD
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: sbuild for ${{ matrix.distro }} ${{ matrix.arch }}
+        uses: wlan-pi/sbuild-debian-package@main
+        id: build-debian-package
+        with:
+          distro: ${{ matrix.distro }}
+          arch: ${{ matrix.arch }}
+
+      # Push with the package_cloud CLI directly instead of an action so upload
+      # errors are detected: the CLI exits 0 even when a push fails (Thor bug).
+      - name: Promote package to wlanpi/main ${{ matrix.distro }}
+        env:
+          PACKAGECLOUD_TOKEN: ${{ secrets.PACKAGECLOUD_TOKEN }}
+          DEB_PACKAGE: ${{ steps.build-debian-package.outputs.deb-package }}
+        run: |
+          if [ -z "${DEB_PACKAGE}" ]; then
+            echo "::error::sbuild produced no .deb package"
+            exit 1
+          fi
+          case "${{ matrix.arch }}" in
+            armhf) target="wlanpi/main/raspbian/${{ matrix.distro }}" ;;
+            *)     target="wlanpi/main/debian/${{ matrix.distro }}" ;;
+          esac
+          sudo gem install package_cloud
+          echo "Promoting ${DEB_PACKAGE} to ${target}"
+          out=$(package_cloud push "${target}" "${DEB_PACKAGE}" 2>&1) || true
+          echo "${out}"
+          # Match the actual package push line, not the repo lookup, so a
+          # failed upload fails this manual promotion.
+          echo "${out}" | grep -q "Pushing ${DEB_PACKAGE}.* success!"

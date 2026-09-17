@@ -54,20 +54,14 @@ jobs:
             exit 1
           fi
           case "${{ matrix.arch }}" in
-            armhf) repos="wlanpi/dev/raspbian wlanpi/main/raspbian" ;;
-            *)     repos="wlanpi/dev/debian wlanpi/main/debian" ;;
+            armhf) target="wlanpi/dev/raspbian/${{ matrix.distro }}" ;;
+            *)     target="wlanpi/dev/debian/${{ matrix.distro }}" ;;
           esac
           sudo gem install package_cloud
-          # Push to both dev (for dev/testing images) and main (for release
-          # images, which enable only the wlanpi/main repo). Release images
-          # otherwise cannot `apt install wlanpi-desktop`.
-          for repo in $repos; do
-            target="${repo}/${{ matrix.distro }}"
-            echo "Pushing ${DEB_PACKAGE} to ${target}"
-            out=$(package_cloud push "${target}" "${DEB_PACKAGE}" 2>&1) || true
-            echo "${out}"
-            echo "${out}" | grep -q "success!"
-          done
+          echo "Pushing ${DEB_PACKAGE} to ${target}"
+          out=$(package_cloud push "${target}" "${DEB_PACKAGE}" 2>&1) || true
+          echo "${out}"
+          echo "${out}" | grep -q "success!"
 
   slack-workflow-status:
     if: ${{ always() && github.repository_owner == 'WLAN-Pi' && ! github.event.pull_request.head.repo.fork }}
