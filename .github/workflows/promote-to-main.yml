@@ -5,6 +5,9 @@ on:
   # is a deliberate human action. Auto-pushes go to wlanpi/dev only.
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   sbuild:
     name: sbuild ${{ matrix.distro }}+${{ matrix.arch }}
