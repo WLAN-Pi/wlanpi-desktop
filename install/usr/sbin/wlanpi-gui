@@ -9,6 +9,10 @@ AUTOLOGIN_CONF="/etc/lightdm/lightdm.conf.d/50-wlanpi-autologin.conf"
 XORG_CONF="/etc/X11/xorg.conf.d/50-wlanpi-performance.conf"
 AUTOLOGIN_USER="wlanpi"
 
+# Boot splash units. Images ship these masked so headless boot has no splash;
+# enabling the desktop restores them.
+PLYMOUTH_UNITS=(plymouth-start.service systemd-ask-password-plymouth.path)
+
 # Functions
 show_status() {
     echo "======================================"
@@ -17,6 +21,7 @@ show_status() {
     echo "Default target:    $(systemctl get-default)"
     echo "LightDM enabled:   $(systemctl is-enabled lightdm 2>/dev/null || echo 'disabled')"
     echo "LightDM active:    $(systemctl is-active lightdm 2>/dev/null || echo 'inactive')"
+    echo "Boot splash:       $(systemctl is-enabled plymouth-start.service 2>/dev/null || echo 'disabled')"
     
     # Check autologin status
     if [ -f "$AUTOLOGIN_CONF" ] && grep -q "autologin-user=$AUTOLOGIN_USER" "$AUTOLOGIN_CONF" 2>/dev/null; then
@@ -63,13 +68,17 @@ enable_gui() {
     # Enable LightDM service
     systemctl enable lightdm
     systemctl enable wlanpi-gui-autostart.service
-    
+
+    # Restore the boot splash (images ship it masked for headless boot)
+    systemctl unmask "${PLYMOUTH_UNITS[@]}" 2>/dev/null || true
+
     # Start LightDM now (don't wait for reboot)
     systemctl start lightdm
-    
+
     echo "✓ GUI enabled successfully"
     echo "Graphical login is now active on HDMI output."
     echo "GUI will start automatically on future reboots."
+    echo "Boot splash re-enabled; applies on next boot."
 }
 
 disable_gui() {
@@ -84,10 +93,13 @@ disable_gui() {
     # Disable LightDM service
     systemctl disable lightdm
     systemctl disable wlanpi-gui-autostart.service
-    
+
+    # Headless boot: no splash
+    systemctl mask "${PLYMOUTH_UNITS[@]}" 2>/dev/null || true
+
     # Set multi-user target as default
     systemctl set-default multi-user.target
-    
+
     echo "✓ GUI disabled successfully"
     echo "System will boot to console/SSH mode on next reboot."
 }
@@ -275,6 +287,8 @@ Notes:
   - Console accessible via Ctrl+Alt+F1-F6 when GUI active
   - Autologin requires GUI to be enabled
   - Screen blanking settings apply to next GUI session
+  - Boot splash is masked on headless images; 'enable' restores it
+    (applies on next boot), 'disable' masks it again
 
 HELPEOF
 }
