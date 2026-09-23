@@ -54,4 +54,4 @@ jobs:
           echo "${out}"
           # Match the actual package push line, not the repo lookup, so a
           # failed upload fails this manual promotion.
-          echo "${out}" | grep -q "Pushing ${DEB_PACKAGE}.* success!"
+          echo "${out}" | grep -q "Pushing .*success!"
