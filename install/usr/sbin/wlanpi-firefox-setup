@@ -4,7 +4,9 @@
 
 set -e
 
-FIREFOX_PROFILE_DIR="/home/wlanpi/.mozilla/firefox"
+# Firefox ESR 153 creates new profiles under ~/.config/mozilla/firefox; older
+# releases, and homes that already have ~/.mozilla, use ~/.mozilla/firefox.
+FIREFOX_PROFILE_DIRS=("/home/wlanpi/.mozilla/firefox" "/home/wlanpi/.config/mozilla/firefox")
 CERT_FILE="/etc/nginx/ssl/self-signed-wlanpi.cert"
 MARKER_FILE="/home/wlanpi/.config/wlanpi-firefox-configured"
 
@@ -23,23 +25,26 @@ if ! grep -q "wlanpi.local" /etc/hosts; then
     echo "127.0.0.1 wlanpi.local" >> /etc/hosts
 fi
 
+find_profile() {
+    sudo -u wlanpi find "${FIREFOX_PROFILE_DIRS[@]}" -maxdepth 1 -name "*.default-esr" -type d 2>/dev/null | head -1
+}
+
 # Create Firefox profile if it doesn't exist
-if [ ! -d "$FIREFOX_PROFILE_DIR" ]; then
+PROFILE=$(find_profile)
+if [ -z "$PROFILE" ]; then
     # Run Firefox once to create profile (headless)
     sudo -u wlanpi firefox-esr --headless --screenshot /tmp/firefox-init.png https://wlanpi.local &
     FIREFOX_PID=$!
     sleep 5
     kill $FIREFOX_PID 2>/dev/null || true
     sleep 2
+    PROFILE=$(find_profile)
 fi
 
-# Find the default profile directory
-PROFILE=$(sudo -u wlanpi find "$FIREFOX_PROFILE_DIR" -maxdepth 1 -name "*.default-esr" -type d | head -1)
-
 if [ -z "$PROFILE" ]; then
-    # Create a default profile
-    sudo -u wlanpi firefox-esr -CreateProfile "default"
-    PROFILE=$(sudo -u wlanpi find "$FIREFOX_PROFILE_DIR" -maxdepth 1 -name "*.default-esr" -type d | head -1)
+    # The service has no display, so -CreateProfile needs --headless too
+    sudo -u wlanpi firefox-esr --headless -CreateProfile "default-esr"
+    PROFILE=$(find_profile)
 fi
 
 if [ -n "$PROFILE" ]; then
