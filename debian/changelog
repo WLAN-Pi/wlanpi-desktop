@@ -1,3 +1,11 @@
+wlanpi-desktop (1.0.6) trixie; urgency=medium
+
+  * Search ~/.config/mozilla/firefox for ESR 153 profiles and pass
+    --headless to -CreateProfile, so wlanpi-firefox-setup no longer
+    fails every boot on headless images (#14)
+
+ -- Josh Schmelzle <josh@joshschmelzle.com>  Fri, 23 Oct 2026 21:57:07 -0400
+
 wlanpi-desktop (1.0.5) trixie; urgency=medium
 
   * Mask the plymouth boot splash on headless images; wlanpi-gui enable
